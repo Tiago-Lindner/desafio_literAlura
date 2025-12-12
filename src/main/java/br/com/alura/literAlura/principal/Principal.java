@@ -1,15 +1,15 @@
 package br.com.alura.literAlura.principal;
 
+import br.com.alura.literAlura.model.Autor;
 import br.com.alura.literAlura.model.DadosLivro;
+import br.com.alura.literAlura.model.DadosResposta;
 import br.com.alura.literAlura.model.Livro;
+import br.com.alura.literAlura.repository.AutorRepository;
 import br.com.alura.literAlura.repository.LivroRepository;
 import br.com.alura.literAlura.service.ConsumoApi;
 import br.com.alura.literAlura.service.ConverteDados;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.Scanner;
+import java.util.*;
 
 
 public class Principal {
@@ -20,15 +20,22 @@ public class Principal {
     private final String ENDERECO = "https://gutendex.com/books/?search=";
     private List<DadosLivro> dadosLivros = new ArrayList<>();
 
-    private LivroRepository repositorio;
+    private LivroRepository repositorioLivro;
+    //private AutorRepository repositorioAutor;
 
     private List<Livro> livros = new ArrayList<>();
 
     private Optional<Livro> livroBusca;
 
-    public Principal(LivroRepository repositorio) {
-        this.repositorio = repositorio;
+    public Principal(LivroRepository repositorioLivro) {
+        this.repositorioLivro = repositorioLivro;
     }
+
+//    public Principal(LivroRepository repositorioLivro, AutorRepository repositorioAutor) {
+//        this.repositorioLivro = repositorioLivro;
+//        this.repositorioAutor = repositorioAutor;
+//    }
+
 
 
     public void exibeMenu() {
@@ -76,17 +83,44 @@ public class Principal {
 
     private void buscarLivroTitulo() {
         DadosLivro dados = getDadosLivro();
-        Livro livro = new Livro(dados);
-        repositorio.save(livro);
-        System.out.println(dados);
+        if(!checaLivroExiste(dados.titulo())){
+            Livro livro = new Livro(dados);
+            repositorioLivro.save(livro);
+            System.out.println(livro);
+
+            Autor autor = new Autor(dados.autores().get(0));
+            livro.setAutor(autor);
+            if (autor.getLivros() == null){
+                List<Livro> listaLivros = new ArrayList<>();
+                listaLivros.add(livro);
+                autor.setLivros(listaLivros);
+            } else {
+                autor.getLivros().add(livro);
+            }
+            //repositorioAutor.save(autor);
+            repositorioLivro.save(livro);
+            System.out.println(autor + "\n");
+        } else {
+            System.out.println("Livro já existente no banco. Tente adicionar outro título. \n");
+        }
+
     }
 
     private DadosLivro getDadosLivro() {
         System.out.println("Digite o nome do livro para busca");
         var nomeLivro = leitura.nextLine();
         var json = consumo.obterDados(ENDERECO + nomeLivro.replace(" ", "%20"));
-        DadosLivro dados = conversor.obterDados(json, DadosLivro.class);
-        return dados;
+        System.out.println(json);
+        DadosResposta dados = conversor.obterDados(json, DadosResposta.class);
+
+        for (DadosLivro dadosLivros : dados.resultados()) {
+
+            String titulo = dadosLivros.titulo();
+            System.out.println(titulo);
+//            System.out.println(dados.resultados().get(0));
+//            System.out.println(dados.resultados().get(0).autores());
+        }
+        return dados.resultados().get(0);
     }
 
     private void listarLivrosIdioma() {
@@ -96,10 +130,28 @@ public class Principal {
     }
 
     private void listarAutores() {
+
     }
 
     private void listarLivros() {
     }
 
+    private boolean checaLivroExiste (String nomeLirvro){
+        livroBusca = repositorioLivro.findByTituloContainingIgnoreCase(nomeLirvro);
+
+        if (livroBusca.isPresent()){
+            return true;
+        } else {
+            return false;
+
+        }
+    }
+
+    private void listarLivrosBuscados(){
+        livros = repositorioLivro.findAll();
+        livros.stream()
+                .sorted(Comparator.comparing(Livro::getTitulo))
+                .forEach(System.out::println);
+    }
 
 }

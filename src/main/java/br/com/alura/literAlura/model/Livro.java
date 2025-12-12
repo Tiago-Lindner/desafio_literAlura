@@ -1,17 +1,51 @@
 package br.com.alura.literAlura.model;
 
+import jakarta.persistence.*;
+
+import java.util.List;
+
+@Entity
+@Table(name = "livros")
 public class Livro {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(unique = true)
     private String titulo;
-    private String autor;
+    private String nomeAutor;
     private String idioma;
-    private double nDownloads;
+    private Integer nDownloads;
+
+//    @OneToOne (mappedBy = "livro", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+//    private Autor autor;
+
+    @ManyToOne
+    private Autor autor;
+
+    public Livro(){}
+
+//    public Livro (DadosLivro dadosLivro){
+//        this.titulo = dadosLivro.titulo();
+//        this.nomeAutor = dadosLivro.autores().isEmpty()
+//                ? "Desconhecido"
+//                : dadosLivro.autores().get(0).nome();
+//        this.idioma = dadosLivro.idiomas().get(0);
+//        this.nDownloads = dadosLivro.nDownloads();
+//    }
 
     public Livro (DadosLivro dadosLivro){
         this.titulo = dadosLivro.titulo();
-        this.autor = dadosLivro.autor();
-        this.idioma = dadosLivro.idiomas();
+        this.nomeAutor = dadosLivro.autores().isEmpty()
+                ? "Desconhecido"
+                : dadosLivro.autores().get(0).nome();
+        this.idioma = dadosLivro.idiomas().get(0);
         this.nDownloads = dadosLivro.nDownloads();
+        //this.autor = new Autor(dadosLivro.autores().get(0));
+//        this.autor.setNome(dadosLivro.autores().get(0).nome());
+//        this.autor.setNascimento(dadosLivro.autores().get(0).nascimento());
+//        this.autor.setFalescimento(dadosLivro.autores().get(0).falescimento());
     }
 
     public String getTitulo() {
@@ -22,11 +56,11 @@ public class Livro {
         this.titulo = titulo;
     }
 
-    public double getnDownloads() {
+    public Integer getnDownloads() {
         return nDownloads;
     }
 
-    public void setnDownloads(double nDownloads) {
+    public void setnDownloads(Integer nDownloads) {
         this.nDownloads = nDownloads;
     }
 
@@ -38,20 +72,35 @@ public class Livro {
         this.idioma = idioma;
     }
 
-    public String getAutor() {
+    public String getNomeAutor() {
+        return nomeAutor;
+    }
+
+    public void setNomeAutor(String nomeAutor) {
+        this.nomeAutor = nomeAutor;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Autor getAutor() {
         return autor;
     }
 
-    public void setAutor(String autor) {
+    public void setAutor(Autor autor) {
         this.autor = autor;
     }
-
 
     @Override
     public String toString() {
         return "Livro{" +
                 "titulo='" + titulo + '\'' +
-                ", autor='" + autor + '\'' +
+                ", autor='" + nomeAutor + '\'' +
                 ", idioma='" + idioma + '\'' +
                 ", nDownloads=" + nDownloads +
                 '}';
