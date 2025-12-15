@@ -13,6 +13,7 @@ public class Autor {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+//    @Column(unique = true)
     private String nome;
     private Integer nascimento;
     private Integer falescimento;

@@ -9,7 +9,9 @@ import br.com.alura.literAlura.repository.LivroRepository;
 import br.com.alura.literAlura.service.ConsumoApi;
 import br.com.alura.literAlura.service.ConverteDados;
 
+import javax.sound.midi.SysexMessage;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
 public class Principal {
@@ -21,20 +23,22 @@ public class Principal {
     private List<DadosLivro> dadosLivros = new ArrayList<>();
 
     private LivroRepository repositorioLivro;
-    //private AutorRepository repositorioAutor;
+    private AutorRepository repositorioAutor;
 
     private List<Livro> livros = new ArrayList<>();
+    private List<Autor> autores = new ArrayList<>();
 
     private Optional<Livro> livroBusca;
+    private Optional<Autor> autorBusca;
 
     public Principal(LivroRepository repositorioLivro) {
         this.repositorioLivro = repositorioLivro;
     }
 
-//    public Principal(LivroRepository repositorioLivro, AutorRepository repositorioAutor) {
-//        this.repositorioLivro = repositorioLivro;
-//        this.repositorioAutor = repositorioAutor;
-//    }
+    public Principal(LivroRepository repositorioLivro, AutorRepository repositorioAutor) {
+        this.repositorioLivro = repositorioLivro;
+        this.repositorioAutor = repositorioAutor;
+    }
 
 
 
@@ -81,25 +85,53 @@ public class Principal {
         }
     }
 
+//    private void buscarLivroTitulo() {
+//        DadosLivro dados = getDadosLivro();
+//        if(!checaLivroExiste(dados.titulo())){
+//            Livro livro = new Livro(dados);
+//            repositorioLivro.save(livro);
+//            System.out.println(livro);
+//
+//            Autor autor = new Autor(dados.autores().get(0));
+//            livro.setAutor(autor);
+//
+//                autor.setLivro(livro);
+//
+//            //repositorioAutor.save(autor);
+//            repositorioLivro.save(livro);
+//            System.out.println(autor + "\n");
+//        } else {
+//            System.out.println("Livro já existente no banco. Tente adicionar outro título. \n");
+//        }
+//
+//    }
+
+
     private void buscarLivroTitulo() {
         DadosLivro dados = getDadosLivro();
         if(!checaLivroExiste(dados.titulo())){
             Livro livro = new Livro(dados);
-            repositorioLivro.save(livro);
             System.out.println(livro);
 
-            Autor autor = new Autor(dados.autores().get(0));
-            livro.setAutor(autor);
-            if (autor.getLivros() == null){
+            autorBusca = repositorioAutor.findByNomeContainingIgnoreCase(dados.autores().get(0).nome());
+            if(autorBusca.isPresent()){
+                livro.setAutor(autorBusca.get());
+
+            } else {
+                Autor autor = new Autor(dados.autores().get(0));
+
+                livro.setAutor(autor);
+
                 List<Livro> listaLivros = new ArrayList<>();
                 listaLivros.add(livro);
-                autor.setLivros(listaLivros);
-            } else {
-                autor.getLivros().add(livro);
+                livro.getAutor().setLivros(listaLivros);
+
             }
-            //repositorioAutor.save(autor);
+
+
+            repositorioAutor.save(livro.getAutor());
             repositorioLivro.save(livro);
-            System.out.println(autor + "\n");
+            System.out.println(livro.getAutor() + "\n");
         } else {
             System.out.println("Livro já existente no banco. Tente adicionar outro título. \n");
         }
@@ -117,29 +149,61 @@ public class Principal {
 
             String titulo = dadosLivros.titulo();
             System.out.println(titulo);
-//            System.out.println(dados.resultados().get(0));
-//            System.out.println(dados.resultados().get(0).autores());
         }
         return dados.resultados().get(0);
     }
 
     private void listarLivrosIdioma() {
+        System.out.println("Digite o idioma para a busca: ");
+        var idioma = leitura.nextLine();
+        List<Livro> livrosIdioma = repositorioLivro.findByIdiomaContainingIgnoreCase(idioma);
+        System.out.println("Livros com o idioma" + idioma + ": ");
+        livrosIdioma.forEach(System.out::println);
     }
 
     private void listarAutoresVivosData() {
+
+        System.out.println("Digite o ano para a busca: ");
+        Integer ano = leitura.nextInt();
+        List<Autor> autoresVivos = repositorioAutor.findByFalescimentoGreaterThan(ano);
+        System.out.println("Autores Vivos em " + ano + ": ");
+        autoresVivos.forEach(System.out::println);
     }
 
     private void listarAutores() {
+        livros = repositorioLivro.findAll();
+
+
+        livros.forEach(a ->
+                System.out.println(a.getAutor()));
+
+        autores = repositorioAutor.findAll();
+        System.out.println(autores.get(0).getLivros());
+        System.out.println("aaa");
+        autores.forEach(a -> System.out.println(a.getLivros()));
 
     }
 
     private void listarLivros() {
+        livros = repositorioLivro.findAll();
+        livros.forEach(System.out::println);
     }
 
-    private boolean checaLivroExiste (String nomeLirvro){
-        livroBusca = repositorioLivro.findByTituloContainingIgnoreCase(nomeLirvro);
+    private boolean checaLivroExiste (String nomeLivro){
+        livroBusca = repositorioLivro.findByTituloContainingIgnoreCase(nomeLivro);
 
         if (livroBusca.isPresent()){
+            return true;
+        } else {
+            return false;
+
+        }
+    }
+
+    private boolean checaAutorExiste (String nomeAutor){
+        autorBusca = repositorioAutor.findByNomeContainingIgnoreCase(nomeAutor);
+
+        if (autorBusca.isPresent()){
             return true;
         } else {
             return false;

@@ -22,6 +22,7 @@ public class Livro {
 //    private Autor autor;
 
     @ManyToOne
+    @JoinColumn(name = "autor_id", referencedColumnName = "id")
     private Autor autor;
 
     public Livro(){}
