@@ -8,10 +8,8 @@ import br.com.alura.literAlura.repository.AutorRepository;
 import br.com.alura.literAlura.repository.LivroRepository;
 import br.com.alura.literAlura.service.ConsumoApi;
 import br.com.alura.literAlura.service.ConverteDados;
-
-import javax.sound.midi.SysexMessage;
 import java.util.*;
-import java.util.stream.Collectors;
+
 
 
 public class Principal {
@@ -20,7 +18,6 @@ public class Principal {
     private ConsumoApi consumo = new ConsumoApi();
     private ConverteDados conversor = new ConverteDados();
     private final String ENDERECO = "https://gutendex.com/books/?search=";
-    private List<DadosLivro> dadosLivros = new ArrayList<>();
 
     private LivroRepository repositorioLivro;
     private AutorRepository repositorioAutor;
@@ -30,10 +27,6 @@ public class Principal {
 
     private Optional<Livro> livroBusca;
     private Optional<Autor> autorBusca;
-
-    public Principal(LivroRepository repositorioLivro) {
-        this.repositorioLivro = repositorioLivro;
-    }
 
     public Principal(LivroRepository repositorioLivro, AutorRepository repositorioAutor) {
         this.repositorioLivro = repositorioLivro;
@@ -51,6 +44,7 @@ public class Principal {
                     3 - Listar autores registrados
                     4 - Listar autores vivos em determinado ano
                     5 - Listar livros em um determinado idioma
+                    6 - Listar top 10 livros por Número de downloads
                     
                     0 - Sair                                 
                     """;
@@ -75,6 +69,9 @@ public class Principal {
                 case 5:
                     listarLivrosIdioma();
                     break;
+                case 6:
+                    listarTop10Livros();
+                    break;
                
                 case 0:
                     System.out.println("Saindo...");
@@ -85,26 +82,7 @@ public class Principal {
         }
     }
 
-//    private void buscarLivroTitulo() {
-//        DadosLivro dados = getDadosLivro();
-//        if(!checaLivroExiste(dados.titulo())){
-//            Livro livro = new Livro(dados);
-//            repositorioLivro.save(livro);
-//            System.out.println(livro);
-//
-//            Autor autor = new Autor(dados.autores().get(0));
-//            livro.setAutor(autor);
-//
-//                autor.setLivro(livro);
-//
-//            //repositorioAutor.save(autor);
-//            repositorioLivro.save(livro);
-//            System.out.println(autor + "\n");
-//        } else {
-//            System.out.println("Livro já existente no banco. Tente adicionar outro título. \n");
-//        }
-//
-//    }
+
 
 
     private void buscarLivroTitulo() {
@@ -187,6 +165,12 @@ public class Principal {
     private void listarLivros() {
         livros = repositorioLivro.findAll();
         livros.forEach(System.out::println);
+    }
+
+    private void listarTop10Livros() {
+        List<Livro> topLivros = repositorioLivro.findTop10ByOrderByNDownloadsDesc();
+        System.out.println("Top 10 Livros por Numero de Downloads: ");
+        topLivros.forEach(System.out::println);
     }
 
     private boolean checaLivroExiste (String nomeLivro){
